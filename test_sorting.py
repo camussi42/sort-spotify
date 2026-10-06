@@ -181,6 +181,38 @@ def test_entry_parsing():
     check(restricted.name != "", "restrito ganha rótulo legível")
 
 
+def test_entry_parsing_formato_novo():
+    """Fev/2026: /items devolve a faixa em "item" (não "track")."""
+    print("Entry.from_playlist_item (formato novo /items)")
+    novo = {
+        "added_at": "2026-05-24T18:39:28Z",
+        "is_local": False,
+        "item": {
+            "type": "track", "episode": False,
+            "uri": "spotify:track:4cMs", "name": "Witch Death Cult",
+            "duration_ms": 424870, "disc_number": 1, "track_number": 3,
+            "artists": [{"name": "1782"}, {"name": "Acid Mammoth"}],
+            "album": {"name": "Doom Sessions, Vol. 2", "release_date": "2020-09-18"},
+        },
+    }
+    entry = Entry.from_playlist_item(novo, 0)
+    check(entry.uri == "spotify:track:4cMs", "lê a faixa de 'item'")
+    check(entry.name == "Witch Death Cult", "lê o nome")
+    check(entry.artists == ["1782", "Acid Mammoth"], "lê os artistas")
+    check(entry.album == "Doom Sessions, Vol. 2", "lê o álbum")
+    check(entry.track_no == 3 and entry.disc == 1, "disco/faixa")
+    check(entry.playable, "é gravável")
+
+    local = Entry.from_playlist_item(
+        {"added_at": "", "is_local": True, "item": {"type": "track",
+                                                    "uri": "spotify:local:x",
+                                                    "name": "Local"}}, 1)
+    check(not local.playable, "local (is_local no embrulho) não é gravável")
+
+    removida = Entry.from_playlist_item({"added_at": "", "item": None}, 2)
+    check(removida.restricted and not removida.playable, "item null é restrito")
+
+
 def test_write_full_batching():
     print("write_full lotes de 100")
 
@@ -222,6 +254,7 @@ def main() -> int:
         test_parse_spec,
         test_parse_playlist_ref,
         test_entry_parsing,
+        test_entry_parsing_formato_novo,
         test_write_full_batching,
     ]
     for test in tests:
