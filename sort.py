@@ -36,6 +36,14 @@ from spotify_auth import (
 )
 from sorting import DEFAULT_SORT, Entry, SortSpecError, sort_entries
 
+
+# ------------------------------------------------------------------ wizard
+def _run_wizard() -> None:
+    """Roda o modo interativo (``python sort.py`` sem argumentos)."""
+    from interactive import wizard
+
+    raise SystemExit(wizard())
+
 BACKUP_DIR = "backup"
 
 TABLE_HEADERS = ["#", "Título", "Artista(s)", "Álbum", "Ano", "D", "F", "Dur."]
@@ -266,9 +274,12 @@ def _report_progress(writer, playlist_id: str, uris: list[str], replace: bool) -
 
 
 # ---------------------------------------------------------------------- cli
-@click.group(help=__doc__)
-def cli():
-    pass
+@click.group(help=__doc__, invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    """Ordena playlists do Spotify como o app. Sem subcomando, abre o modo interativo."""
+    if ctx.invoked_subcommand is None:
+        _run_wizard()
 
 
 @cli.command("login")
