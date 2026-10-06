@@ -144,6 +144,19 @@ class SpotifyAPI:
     def get_current_user(self) -> dict:
         return self.request("GET", "/me")
 
+    def get_current_user_playlists(
+        self, limit: int = 50, offset: int = 0
+    ) -> dict:
+        """Lista as playlists do usuário (`GET /me/playlists`).
+
+        Retorna o payload paginado (`items`, `next`, `total`).
+        """
+        return self.request(
+            "GET",
+            "/me/playlists",
+            params={"limit": limit, "offset": offset},
+        )
+
     def get_playlist(self, playlist_id: str) -> dict:
         fields = (
             "id,name,description,owner(id,display_name),public,collaborative,"
