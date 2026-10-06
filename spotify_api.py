@@ -17,9 +17,14 @@ import requests
 BASE = "https://api.spotify.com/v1"
 MAX_BATCH = 100
 
-# Caminhos atuais e legados (a API renomeou /tracks -> /items em escrita).
-_READ_PATHS = ("tracks", "items")
+# Caminhos de leitura/escrita. Desde fev/2026 o canônico é /items;
+# apps novos recebem 403 no legado /tracks, então tentamos /items primeiro.
+_READ_PATHS = ("items", "tracks")
 _WRITE_PATHS = ("items", "tracks")
+
+# Status em que vale tentar o caminho alternativo antes de desistir:
+# 404/405 = caminho não existe; 403 = app novo sem acesso ao legado.
+_RETRY_STATUSES = (403, 404, 405)
 
 
 class SpotifyAPIError(RuntimeError):
@@ -112,7 +117,7 @@ class SpotifyAPI:
         raise last_error or SpotifyAPIError(429, "limite de requisicoes")
 
     def _write(self, method: str, playlist_id: str, body: dict):
-        """Tenta o caminho novo e cai para o legado em 404/405."""
+        """Tenta o caminho novo e cai para o legado em 403/404/405."""
         last: SpotifyAPIError | None = None
         for suffix in _WRITE_PATHS:
             try:
@@ -120,7 +125,7 @@ class SpotifyAPI:
                     method, f"/playlists/{playlist_id}/{suffix}", json_body=body
                 )
             except SpotifyAPIError as exc:
-                if exc.status in (404, 405):
+                if exc.status in _RETRY_STATUSES:
                     last = exc
                     continue
                 raise
@@ -134,7 +139,7 @@ class SpotifyAPI:
                     "GET", f"/playlists/{playlist_id}/{suffix}", params=params
                 )
             except SpotifyAPIError as exc:
-                if exc.status in (404, 405):
+                if exc.status in _RETRY_STATUSES:
                     last = exc
                     continue
                 raise
@@ -158,15 +163,7 @@ class SpotifyAPI:
         )
 
     def get_playlist(self, playlist_id: str) -> dict:
-        fields = (
-            "id,name,description,owner(id,display_name),public,collaborative,"
-            "snapshot_id,tracks(total)"
-        )
-        return self.request(
-            "GET",
-            f"/playlists/{playlist_id}",
-            params={"fields": fields},
-        )
+        return self.request("GET", f"/playlists/{playlist_id}")
 
     def get_playlist_items(
         self, playlist_id: str, on_progress=None

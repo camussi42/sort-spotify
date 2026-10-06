@@ -156,7 +156,7 @@ def backup_playlist(
         "owner": (playlist.get("owner") or {}).get("id"),
         "backed_up_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "original_order": [
-            ((item.get("track") or {}).get("uri") or item.get("uri"))
+            ((item.get("item") or item.get("track") or {}).get("uri"))
             for item in items
         ],
         "new_order": [entry.uri for entry in ordered],

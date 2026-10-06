@@ -1,4 +1,7 @@
 .env
+.env.*.local
 .token.json
+backup/
+Downloads
 __pycache__/
 *.py[cod]

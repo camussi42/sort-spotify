@@ -108,15 +108,17 @@ class Entry:
     @classmethod
     def from_playlist_item(cls, item: dict, index: int) -> "Entry":
         entry = cls(index=index, added_at=item.get("added_at") or "")
-        track = item.get("track")
+        # Desde fev/2026 o endpoint /items devolve a faixa em "item",
+        # com "is_local" no nivel do embrulho (mantido "track" legado).
+        track = item.get("item") or item.get("track") or {}
 
         if not track:
             entry.restricted = True
             entry.name = "(indisponível — removida do catálogo)"
             return entry
 
-        entry.is_local = bool(track.get("is_local"))
-        entry.is_episode = track.get("type") == "episode"
+        entry.is_local = bool(track.get("is_local") or item.get("is_local"))
+        entry.is_episode = track.get("type") == "episode" or bool(track.get("episode"))
         entry.uri = track.get("uri") or ""
         entry.name = track.get("name") or ""
         entry.duration_ms = int(track.get("duration_ms") or 0)
