@@ -221,7 +221,7 @@ def test_passo_sort_preset():
         spec, opts = passo_sort()
         click.echo(f"SPEC={spec}")
 
-    result = CliRunner().invoke(_cmd, [], input="1\nn\nn\n",
+    result = CliRunner().invoke(_cmd, [], input="1\n",
                                 catch_exceptions=False)
     check(result.exit_code == 0, f"exit 0 (obtido {result.exit_code})")
     check("SPEC=artist,album,year,trackno,title" in result.output,
@@ -234,14 +234,14 @@ def test_passo_sort_personalizada_ptbr():
     @click.command()
     def _cmd():
         spec, opts = passo_sort()
-        click.echo(f"SPEC={spec} DESC={opts['descending']}")
+        click.echo(f"SPEC={spec} OPTS={opts!r}")
 
     result = CliRunner().invoke(
-        _cmd, [], input="7\nartista,titulo\ns\nn\n", catch_exceptions=False
+        _cmd, [], input="7\nartista,titulo\n", catch_exceptions=False
     )
     check(result.exit_code == 0, f"exit 0 (obtido {result.exit_code})")
     check("SPEC=artista,titulo" in result.output, "aceita cadeia em pt-BR")
-    check("DESC=True" in result.output, "decrescente liga")
+    check("OPTS={}" in result.output, "sem perguntas extras")
 
 def test_passo_diff_erro_volta_singleton():
     print("passo_diff: erro mantém singletons")
@@ -282,9 +282,9 @@ def test_passo_diff_segue_para_gravar():
 def test_wizard_copy_fim_a_fim():
     print("wizard: lista -> sort -> diff -> copy")
     api = FakeAPI()
-    # playlist 1, preset 1, desc n, avançado n, export n,
-    # continuar 1, copy 2, nome vazio, criar s, outra n.
-    stdin = "1\n1\nn\nn\nn\n1\n2\n\ns\nn\n"
+    # playlist 1, preset 1, export n, continuar 1, copy 2, nome vazio,
+    # criar s, outra n.
+    stdin = "1\n1\nn\n1\n2\n\ns\nn\n"
     result = run_wizard(api, stdin)
     check(result.exit_code == 0, f"exit 0 (obtido {result.exit_code})")
     check("Logado como: Tester" in result.output, "mostra quem logou")
@@ -304,9 +304,9 @@ def test_wizard_in_place_com_backup():
     cwd = os.getcwd()
     os.chdir(workdir)
     try:
-        # playlist 1, preset título, desc n, avançado n, export n,
-        # continuar 1, in-place 1, confirmar s, outra n.
-        stdin = "1\n2\nn\nn\nn\n1\n1\ns\nn\n"
+        # playlist 1, preset título, export n, continuar 1, in-place 1,
+        # confirmar s, outra n.
+        stdin = "1\n2\nn\n1\n1\ns\nn\n"
         result = run_wizard(api, stdin)
         check(result.exit_code == 0, f"exit 0 (obtido {result.exit_code})")
         backups = os.listdir(os.path.join(workdir, "backup"))
