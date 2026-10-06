@@ -61,7 +61,29 @@ E preencha `CLIENT_ID` e `CLIENT_SECRET` no `.env`.
 
 ## Uso
 
-### 1. Só olhar como ficaria (sem login)
+Rode sem argumentos e o programa conduz você (login → escolher playlist →
+ordenação → ver antes/depois → gravar). Sem frontend, direto no terminal:
+
+```bash
+pip install -r requirements.txt
+python sort.py
+```
+
+1. **Banner + login** — se já logou antes (`.token.json` válido), mostra
+   `Logado como: <nome>` e segue. Senão, abre o navegador para autorizar.
+2. **Escolha a playlist** — lista paginada das suas
+   (`[1] Nome · N faixas · sua/de fulano`, `[M] Ver mais`), ou `[0]` para
+   colar link/URI/ID de qualquer playlist.
+3. **Como ordenar** — as mesmas do README: Artista → Álbum → Faixa (padrão),
+   Título, Álbum, Data adicionada, Duração, Embaralhar, ou Personalizada.
+4. **Passo 0 — ver antes de gravar** — diff lado a lado ANTES → DEPOIS
+   (8 primeiras) + resumo (total, dono, itens locais que seriam perdidos).
+5. **Gravar** — sobrescrever a original (sempre com backup em
+   `backup/<id>_<data>.json`) ou criar uma cópia ordenada.
+
+`Ctrl+C` volta ao passo anterior ou sai com mensagem limpa.
+
+### Modo script (comandos, sem interação)
 
 ```bash
 python sort.py preview "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
@@ -156,8 +178,9 @@ Nada disso sai da sua máquina.
 ## Testes
 
 ```bash
-python test_sorting.py   # núcleo: ordenação, parsing, lotes
-python test_cli.py       # CLI de ponta a ponta com API falsificada
+python test_sorting.py      # núcleo: ordenação, parsing, lotes
+python test_cli.py          # CLI de ponta a ponta com API falsificada
+python test_interactive.py  # wizard: lista, link, presets, diff, gravação
 ```
 
 Sem dependência de rede e sem pytest.
