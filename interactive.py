@@ -275,7 +275,7 @@ def pedir_link() -> str:
 def _rotulo_playlist(playlist: dict, meu_id: str) -> str:
     dono_id = (playlist.get("owner") or {}).get("id") or ""
     dono = (playlist.get("owner") or {}).get("display_name") or "?"
-    total = (playlist.get("tracks") or {}).get("total", "?")
+    total = (playlist.get("tracks") or playlist.get("items") or {}).get("total", "?")
     etiqueta = "sua" if dono_id and dono_id == meu_id else dono
     nome = playlist.get("name") or "(sem nome)"
     return f"{nome}  ·  {total} faixas  ·  {etiqueta}"
@@ -344,22 +344,8 @@ def passo_sort() -> tuple[str, dict] | Sinal:
     else:
         spec = str(escolha)
 
-    opts: dict = {
-        "keep_accents": False,
-        "ignore_the": False,
-        "all_artists": False,
-        "descending": False,
-    }
-
-    if spec != "random":
-        opts["descending"] = sim("Ordem decrescente")
-
-    if sim("Opcoes avancadas (artigos, acentos, todos os artistas)"):
-        opts["ignore_the"] = sim("  Ignorar artigos no inicio (the, a, o...)")
-        opts["keep_accents"] = sim("  Manter acentos na comparacao")
-        opts["all_artists"] = sim("  Usar todos os artistas da faixa")
-
-    return spec, opts
+    # Sempre crescente (A-Z, como no app). Avancado so no modo script via flags.
+    return spec, {}
 
 
 def passo_diff(
